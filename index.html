@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registration Form</title>
+<style>
+    body { font-family: Arial; padding: 30px; max-width: 500px; margin: auto; }
+    input { display: block; width: 100%; padding: 10px; margin: 10px 0; font-size: 16px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    .error { color: red; font-size: 14px; margin-top: -8px; margin-bottom: 8px; }
+    .strength { font-size: 14px; margin-top: -8px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<h2>Registration Form</h2>
+<form id="regForm">
+    <input type="text" id="name" placeholder="Enter Name" required>
+    <div id="nameError" class="error"></div>
+
+    <input type="email" id="email" placeholder="Enter Email" required>
+    <div id="emailError" class="error"></div>
+
+    <input type="tel" id="phone" placeholder="Enter Phone (10 digits)" required>
+    <div id="phoneError" class="error"></div>
+
+    <div style="position: relative;">
+        <input type="password" id="password" placeholder="Enter Password" required>
+        <button type="button" id="togglePwd" style="position:absolute; right:10px; top:10px;">Show</button>
+    </div>
+    <div id="passwordError" class="error"></div>
+    <div id="pwdStrength" class="strength"></div>
+
+    <button type="submit">Register</button>
+</form>
+
+<h3>Submissions:</h3>
+<ul id="submissionList"></ul>
+
+<script>
+const form = document.getElementById("regForm");
+const nameInput = document.getElementById("name");
+const emailInput = document.getElementById("email");
+const phoneInput = document.getElementById("phone");
+const passwordInput = document.getElementById("password");
+const togglePwd = document.getElementById("togglePwd");
+
+const nameError = document.getElementById("nameError");
+const emailError = document.getElementById("emailError");
+const phoneError = document.getElementById("phoneError");
+const passwordError = document.getElementById("passwordError");
+const pwdStrength = document.getElementById("pwdStrength");
+
+const submissionList = document.getElementById("submissionList");
+
+// Load existing submissions
+let submissions = JSON.parse(localStorage.getItem("submissions")) || [];
+function displaySubmissions() {
+    submissionList.innerHTML = "";
+    submissions.forEach((sub, i) => {
+        const li = document.createElement("li");
+        li.innerText = `${i+1}. ${sub.name} | ${sub.email} | ${sub.phone}`;
+        submissionList.appendChild(li);
+    });
+}
+displaySubmissions();
+
+// Real-time validation
+nameInput.addEventListener("input", () => {
+    nameError.innerText = nameInput.value.trim() === "" ? "Name cannot be empty" : "";
+});
+
+emailInput.addEventListener("input", () => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    emailError.innerText = !regex.test(emailInput.value) ? "Invalid email" : "";
+});
+
+phoneInput.addEventListener("input", () => {
+    const regex = /^\d{10}$/;
+    phoneError.innerText = !regex.test(phoneInput.value) ? "Phone must be 10 digits" : "";
+});
+
+passwordInput.addEventListener("input", () => {
+    const val = passwordInput.value;
+    let strength = "";
+    if(val.length < 6) strength = "Weak";
+    else if(val.match(/[A-Z]/) && val.match(/\d/)) strength = "Strong";
+    else strength = "Medium";
+    pwdStrength.innerText = "Strength: " + strength;
+});
+
+// Show/hide password
+togglePwd.addEventListener("click", () => {
+    if(passwordInput.type === "password") {
+        passwordInput.type = "text";
+        togglePwd.innerText = "Hide";
+    } else {
+        passwordInput.type = "password";
+        togglePwd.innerText = "Show";
+    }
+});
+
+// On submit
+form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    // Final validation
+    if(nameInput.value.trim() === "" || emailError.innerText || phoneError.innerText || passwordInput.value.length < 6){
+        alert("Please correct errors before submitting");
+        return;
+    }
+
+    const newSubmission = {
+        name: nameInput.value.trim(),
+        email: emailInput.value.trim(),
+        phone: phoneInput.value.trim(),
+        password: passwordInput.value // you can hash it if needed
+    };
+
+    submissions.push(newSubmission);
+    localStorage.setItem("submissions", JSON.stringify(submissions));
+    displaySubmissions();
+
+    form.reset();
+    pwdStrength.innerText = "";
+});
+</script>
+
+</body>
+</html>
